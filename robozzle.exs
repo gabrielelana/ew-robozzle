@@ -13,6 +13,9 @@ defmodule Robozzle do
   @type stage :: %{position => tile}
 
   @spec rc(command, ship, stage) :: {ship, stage}
+  def rc({:paint, color}, {p, _} = ship, stage),
+    do: {ship, Map.put(stage, p, color)}
+
   def rc(:forward, {{x,y}, :north}, s), do: pick_star({{x,y-1}, :north}, s)
   def rc(:forward, {{x,y}, :east}, s), do: pick_star({{x+1,y}, :east}, s)
   def rc(:forward, {{x,y}, :south}, s), do: pick_star({{x,y+1}, :south}, s)

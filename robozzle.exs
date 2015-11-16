@@ -66,6 +66,26 @@ defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
 
+  test "rc/3 picks the star" do
+    {_, stage} = parse("""
+                       b.b*b.
+                       b*beb*
+                       b.b*b.
+                       """)
+
+    expected = Map.put(stage, {1,0}, :blue)
+    assert {{{1,0}, :north}, expected} == rc(:forward, {{1,1}, :north}, stage)
+
+    expected = Map.put(stage, {2,1}, :blue)
+    assert {{{2,1}, :east}, expected} == rc(:forward, {{1,1}, :east}, stage)
+
+    expected = Map.put(stage, {1,2}, :blue)
+    assert {{{1,2}, :south}, expected} == rc(:forward, {{1,1}, :south}, stage)
+
+    expected = Map.put(stage, {0,1}, :blue)
+    assert {{{0,1}, :west}, expected} == rc(:forward, {{1,1}, :west}, stage)
+  end
+
   test "rc/3 move commands" do
     {_, stage} = parse("""
                        b.b.b.

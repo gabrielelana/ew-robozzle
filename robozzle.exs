@@ -143,6 +143,13 @@ defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
 
+  test "run/3 out of time" do
+    {ship, stage} = parse("beb.b.b*")
+    functions = %{f1: [:right, {:call, :f1}]}
+
+    assert {:out_of_time, _, _} = run(functions, ship, stage)
+  end
+
   test "run/3 stack overflow" do
     {ship, stage} = parse("beb.b.b*")
     functions = %{f1: [:right, {:call, :f1}, :right]}

@@ -14,6 +14,10 @@ defmodule Robozzle do
   @type ship :: {position, direction}
   @type stage :: %{position => tile}
 
+  @type outcome :: :complete | :incomplete
+  @spec run([command], ship, stage) :: {outcome, ship, stage}
+  def run(_commands, ship, stage), do: {:incomplete, ship, stage}
+
   @spec rc(command, ship, stage) :: {ship, stage}
   def rc({:paint, color}, {p, _} = ship, stage),
     do: {ship, Map.put(stage, p, color)}
@@ -88,6 +92,25 @@ ExUnit.start
 defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
+
+  test "run/3" do
+    {ship, stage} = parse("beb.b.b*")
+
+    commands = []
+    assert {:incomplete, ship, stage} == run(commands, ship, stage)
+
+    commands = [:forward]
+    {ship_after, stage_after} = parse("b.beb.b*")
+    assert {:incomplete, ship_after, stage_after} == run(commands, ship, stage)
+
+    commands = [:forward, :forward]
+    {ship_after, stage_after} = parse("b.b.beb*")
+    assert {:incomplete, ship_after, stage_after} == run(commands, ship, stage)
+
+    commands = [:forward, :forward, :forward]
+    {ship_after, stage_after} = parse("b.b.b.be")
+    assert {:complete, ship_after, stage_after} == run(commands, ship, stage)
+  end
 
   test "rc/3 conditional commands" do
     {_, stage} = parse("""

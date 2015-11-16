@@ -4,11 +4,16 @@ defmodule Robozzle do
   @type position :: {x::coordinate, y::coordinate}
   @type direction :: :north | :east | :south | :west
 
+  @type command :: :forward | :right | :left
+
   @type color :: :blue | :green | :red
   @type tile :: color | {color, :star}
 
   @type ship :: {position, direction}
   @type stage :: %{position => tile}
+
+  @spec rc(command, ship, stage) :: {ship, stage}
+  def rc(_command, ship, stage), do: {ship, stage}
 
   @spec parse(String.t) :: {ship, stage} | {:error, reason::String.t}
   def parse(string) do
@@ -49,6 +54,29 @@ ExUnit.start
 defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
+
+  test "rc/3 move commands" do
+    {_, stage} = parse("""
+                       b.b.b.
+                       b.beb.
+                       b.b.b.
+                       """)
+
+    assert {{{1,0}, :north}, stage} == rc(:forward, {{1,1}, :north}, stage)
+    assert {{{2,1}, :east}, stage} == rc(:forward, {{1,1}, :east}, stage)
+    assert {{{1,2}, :south}, stage} == rc(:forward, {{1,1}, :south}, stage)
+    assert {{{0,1}, :west}, stage} == rc(:forward, {{1,1}, :west}, stage)
+
+    assert {{{1,1}, :east}, stage} == rc(:right, {{1,1}, :north}, stage)
+    assert {{{1,1}, :south}, stage} == rc(:right, {{1,1}, :east}, stage)
+    assert {{{1,1}, :west}, stage} == rc(:right, {{1,1}, :south}, stage)
+    assert {{{1,1}, :north}, stage} == rc(:right, {{1,1}, :west}, stage)
+
+    assert {{{1,1}, :west}, stage} == rc(:left, {{1,1}, :north}, stage)
+    assert {{{1,1}, :north}, stage} == rc(:left, {{1,1}, :east}, stage)
+    assert {{{1,1}, :east}, stage} == rc(:left, {{1,1}, :south}, stage)
+    assert {{{1,1}, :south}, stage} == rc(:left, {{1,1}, :west}, stage)
+  end
 
   test "parse/1 multiple lines" do
     stage = %{{0,0} => :blue,

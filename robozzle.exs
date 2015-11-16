@@ -24,12 +24,19 @@ defmodule Robozzle do
   @type ship :: {position, direction}
   @type stage :: %{position => tile}
 
-  @type outcome :: :complete | :incomplete | :out_of_stage
+  @type outcome :: :complete
+                 | :incomplete
+                 | :out_of_stage
+                 | :stack_overflow
+
+  @stack_limit 100
 
   @spec run(functions, ship, stage, stack) :: {outcome, ship, stage}
   def run(fs, ship, stage, stack \\ [{:call, :f1}])
   def run(_, ship, stage, []),
     do: {:incomplete, ship, stage}
+  def run(_, ship, stage, stack) when length(stack) > @stack_limit,
+    do: {:stack_overflow, ship, stage}
   def run(fs, ship, stage, [c|stack]) do
     case rc(c, ship, stage) do
       {:out_of_stage, _, _} = out_of_stage ->

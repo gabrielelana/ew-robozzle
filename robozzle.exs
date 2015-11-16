@@ -13,7 +13,18 @@ defmodule Robozzle do
   @type stage :: %{position => tile}
 
   @spec rc(command, ship, stage) :: {ship, stage}
-  def rc(_command, ship, stage), do: {ship, stage}
+  def rc(:forward, {{x,y}, :north}, s), do: {{{x,y-1}, :north}, s}
+  def rc(:forward, {{x,y}, :east}, s), do: {{{x+1,y}, :east}, s}
+  def rc(:forward, {{x,y}, :south}, s), do: {{{x,y+1}, :south}, s}
+  def rc(:forward, {{x,y}, :west}, s), do: {{{x-1,y}, :west}, s}
+  def rc(:right, {p, :north}, s), do: {{p, :east}, s}
+  def rc(:right, {p, :east}, s), do: {{p, :south}, s}
+  def rc(:right, {p, :south}, s), do: {{p, :west}, s}
+  def rc(:right, {p, :west}, s), do: {{p, :north}, s}
+  def rc(:left, {p, :north}, s), do: {{p, :west}, s}
+  def rc(:left, {p, :east}, s), do: {{p, :north}, s}
+  def rc(:left, {p, :south}, s), do: {{p, :east}, s}
+  def rc(:left, {p, :west}, s), do: {{p, :south}, s}
 
   @spec parse(String.t) :: {ship, stage} | {:error, reason::String.t}
   def parse(string) do

@@ -14,7 +14,8 @@ defmodule Robozzle do
   @type ship :: {position, direction}
   @type stage :: %{position => tile}
 
-  @type outcome :: :complete | :incomplete
+  @type outcome :: :complete | :incomplete | :out_of_stage
+
   @spec run([command], ship, stage) :: {outcome, ship, stage}
   def run([], ship, stage), do: {:incomplete, ship, stage}
   def run([c|cs], ship, stage) do
@@ -27,12 +28,10 @@ defmodule Robozzle do
   end
 
   defp complete?(stage) do
-    stage
-    |> Enum.filter(&match?({_, {_, :star}}, &1))
-    |> Enum.empty?
+    not Enum.any?(stage, &match?({_, {_, :star}}, &1))
   end
 
-  @spec rc(command, ship, stage) :: {ship, stage}
+  @spec rc(command, ship, stage) :: {ship, stage} | {:out_of_stage, ship, stage}
   def rc({:paint, color}, {p, _} = ship, stage),
     do: {ship, Map.put(stage, p, color)}
 
@@ -106,6 +105,16 @@ ExUnit.start
 defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
+
+  test "run/3 out of stage" do
+    {ship, stage} = parse("bnb.b*")
+
+    commands = [:forward]
+    assert {:out_of_stage, {{0,-1}, :north}, stage} == run(commands, ship, stage)
+
+    commands = [:forward, :forward]
+    assert {:out_of_stage, {{0,-1}, :north}, stage} == run(commands, ship, stage)
+  end
 
   test "run/3" do
     {ship, stage} = parse("beb.b.b*")

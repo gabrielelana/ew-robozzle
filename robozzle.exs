@@ -19,11 +19,15 @@ defmodule Robozzle do
   @spec run([command], ship, stage) :: {outcome, ship, stage}
   def run([], ship, stage), do: {:incomplete, ship, stage}
   def run([c|cs], ship, stage) do
-    {ship, stage} = rc(c, ship, stage)
-    if complete?(stage) do
-      {:complete, ship, stage}
-    else
-      run(cs, ship, stage)
+    case rc(c, ship, stage) do
+      {:out_of_stage, _, _} = out_of_stage ->
+        out_of_stage
+      {ship, stage} ->
+        if complete?(stage) do
+          {:complete, ship, stage}
+        else
+          run(cs, ship, stage)
+        end
     end
   end
 
@@ -58,9 +62,11 @@ defmodule Robozzle do
   def rc(:left, {p, :west}, s), do: {{p, :south}, s}
 
   defp pick_star({p, _} = ship, stage) do
-    case Map.get(stage, p, nil) do
+    case Map.get(stage, p, :out_of_stage) do
       {color, :star} ->
         {ship, Map.put(stage, p, color)}
+      :out_of_stage ->
+        {:out_of_stage, ship, stage}
       _ ->
         {ship, stage}
     end

@@ -24,36 +24,42 @@ defmodule Robozzle do
   @type ship :: {position, direction}
   @type stage :: %{position => tile}
 
+  @type steps :: non_neg_integer
+
   @type outcome :: :complete
                  | :incomplete
                  | :out_of_stage
+                 | :out_of_time
                  | :stack_overflow
 
   @stack_limit 100
+  @time_limit 10_000
 
-  @spec run(functions, ship, stage, stack) :: {outcome, ship, stage}
-  def run(fs, ship, stage, stack \\ [{:call, :f1}])
-  def run(_, ship, stage, []),
+  @spec run(functions, ship, stage, stack, steps) :: {outcome, ship, stage}
+  def run(fs, ship, stage, stack \\ [{:call, :f1}], steps \\ 0)
+  def run(_, ship, stage, [], _),
     do: {:incomplete, ship, stage}
-  def run(_, ship, stage, stack) when length(stack) > @stack_limit,
+  def run(_, ship, stage, stack, _) when length(stack) > @stack_limit,
     do: {:stack_overflow, ship, stage}
-  def run(fs, ship, stage, [c|stack]) do
+  def run(_, ship, stage, _, steps) when steps > @time_limit,
+    do: {:out_of_time, ship, stage}
+  def run(fs, ship, stage, [c|stack], steps) do
     case rc(c, ship, stage) do
       {:out_of_stage, _, _} = out_of_stage ->
         out_of_stage
       {ship, stage, f} ->
         stack = Map.fetch!(fs, f) |> Enum.concat(stack)
-        complete_or_run(fs, ship, stage, stack)
+        complete_or_run(fs, ship, stage, stack, steps)
       {ship, stage} ->
-        complete_or_run(fs, ship, stage, stack)
+        complete_or_run(fs, ship, stage, stack, steps)
     end
   end
 
-  defp complete_or_run(fs, ship, stage, stack) do
+  defp complete_or_run(fs, ship, stage, stack, steps) do
     if complete?(stage) do
       {:complete, ship, stage}
     else
-      run(fs, ship, stage, stack)
+      run(fs, ship, stage, stack, steps + 1)
     end
   end
 

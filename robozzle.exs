@@ -136,6 +136,32 @@ defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
 
+  test "run/3 stack overflow" do
+    {ship, stage} = parse("beb.b.b*")
+    functions = %{f1: [:right, {:call, :f1}, :right]}
+
+    assert {:stack_overflow, _, _} = run(functions, ship, stage)
+  end
+
+  test "run/3 with stack" do
+    {ship, stage} = parse("beb.b.b*")
+    {ship_after, stage_after} = parse("b.b.b.be")
+    functions = %{f1: [:forward, {:call, :f2}, :forward],
+                  f2: [:forward]}
+
+    assert {:complete, ship_after, stage_after} == run(functions, ship, stage)
+  end
+
+  test "run/3 with multiple functions" do
+    {ship, stage} = parse("beb.b.b*")
+    {ship_after, stage_after} = parse("b.b.b.be")
+    functions = %{f1: [:forward, {:call, :f2}],
+                  f2: [:forward, {:call, :f3}],
+                  f3: [:forward]}
+
+    assert {:complete, ship_after, stage_after} == run(functions, ship, stage)
+  end
+
   test "run/3 out of stage" do
     {ship, stage} = parse("bnb.b*")
 

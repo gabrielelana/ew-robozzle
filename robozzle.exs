@@ -13,10 +13,10 @@ defmodule Robozzle do
   @type stage :: %{position => tile}
 
   @spec rc(command, ship, stage) :: {ship, stage}
-  def rc(:forward, {{x,y}, :north}, s), do: {{{x,y-1}, :north}, s}
-  def rc(:forward, {{x,y}, :east}, s), do: {{{x+1,y}, :east}, s}
-  def rc(:forward, {{x,y}, :south}, s), do: {{{x,y+1}, :south}, s}
-  def rc(:forward, {{x,y}, :west}, s), do: {{{x-1,y}, :west}, s}
+  def rc(:forward, {{x,y}, :north}, s), do: pick_star({{x,y-1}, :north}, s)
+  def rc(:forward, {{x,y}, :east}, s), do: pick_star({{x+1,y}, :east}, s)
+  def rc(:forward, {{x,y}, :south}, s), do: pick_star({{x,y+1}, :south}, s)
+  def rc(:forward, {{x,y}, :west}, s), do: pick_star({{x-1,y}, :west}, s)
   def rc(:right, {p, :north}, s), do: {{p, :east}, s}
   def rc(:right, {p, :east}, s), do: {{p, :south}, s}
   def rc(:right, {p, :south}, s), do: {{p, :west}, s}
@@ -25,6 +25,15 @@ defmodule Robozzle do
   def rc(:left, {p, :east}, s), do: {{p, :north}, s}
   def rc(:left, {p, :south}, s), do: {{p, :east}, s}
   def rc(:left, {p, :west}, s), do: {{p, :south}, s}
+
+  defp pick_star({p, _} = ship, stage) do
+    case Map.get(stage, p, nil) do
+      {color, :star} ->
+        {ship, Map.put(stage, p, color)}
+      _ ->
+        {ship, stage}
+    end
+  end
 
   @spec parse(String.t) :: {ship, stage} | {:error, reason::String.t}
   def parse(string) do

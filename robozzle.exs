@@ -4,9 +4,19 @@ defmodule Robozzle do
   @type position :: {x::coordinate, y::coordinate}
   @type direction :: :north | :east | :south | :west
 
-  @type direct_command :: :forward | :right | :left | {:paint, color}
+  @type direct_command :: :forward
+                        | :right
+                        | :left
+                        | {:paint, color}
+                        | {:call, function_name}
+
   @type conditional_command :: {direct_command, color}
   @type command :: direct_command | conditional_command
+
+  @type function_name :: :f1 | :f2 | :f3
+  @type functions :: %{function_name => [command]}
+
+  @type stack :: [command]
 
   @type color :: :blue | :green | :red
   @type tile :: color | {color, :star}
@@ -115,30 +125,36 @@ defmodule Robozzle.Test do
   test "run/3 out of stage" do
     {ship, stage} = parse("bnb.b*")
 
-    commands = [:forward]
-    assert {:out_of_stage, {{0,-1}, :north}, stage} == run(commands, ship, stage)
+    functions = %{f1: [:forward]}
+    assert {:out_of_stage, {{0,-1}, :north}, stage} == run(functions, ship, stage)
 
-    commands = [:forward, :forward]
-    assert {:out_of_stage, {{0,-1}, :north}, stage} == run(commands, ship, stage)
+    functions = %{f1: [:forward, :forward]}
+    assert {:out_of_stage, {{0,-1}, :north}, stage} == run(functions, ship, stage)
   end
 
   test "run/3" do
     {ship, stage} = parse("beb.b.b*")
 
-    commands = []
-    assert {:incomplete, ship, stage} == run(commands, ship, stage)
+    functions = %{f1: []}
+    assert {:incomplete, ship, stage} == run(functions, ship, stage)
 
-    commands = [:forward]
+    functions = %{f1: [:forward]}
     {ship_after, stage_after} = parse("b.beb.b*")
-    assert {:incomplete, ship_after, stage_after} == run(commands, ship, stage)
+    assert {:incomplete, ship_after, stage_after} == run(functions, ship, stage)
 
-    commands = [:forward, :forward]
+    functions = %{f1: [:forward, :forward]}
     {ship_after, stage_after} = parse("b.b.beb*")
-    assert {:incomplete, ship_after, stage_after} == run(commands, ship, stage)
+    assert {:incomplete, ship_after, stage_after} == run(functions, ship, stage)
 
-    commands = [:forward, :forward, :forward]
+    functions = %{f1: [:forward, :forward, :forward]}
     {ship_after, stage_after} = parse("b.b.b.be")
-    assert {:complete, ship_after, stage_after} == run(commands, ship, stage)
+    assert {:complete, ship_after, stage_after} == run(functions, ship, stage)
+  end
+
+  test "rc/3 call commands" do
+    {ship, stage} = parse("beb.b.")
+
+    assert {ship, stage, :f1} == rc({:call, :f1}, ship, stage)
   end
 
   test "rc/3 conditional commands" do

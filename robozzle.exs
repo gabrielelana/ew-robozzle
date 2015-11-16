@@ -4,7 +4,9 @@ defmodule Robozzle do
   @type position :: {x::coordinate, y::coordinate}
   @type direction :: :north | :east | :south | :west
 
-  @type command :: :forward | :right | :left | {:paint, color}
+  @type direct_command :: :forward | :right | :left | {:paint, color}
+  @type conditional_command :: {direct_command, color}
+  @type command :: direct_command | conditional_command
 
   @type color :: :blue | :green | :red
   @type tile :: color | {color, :star}
@@ -77,6 +79,18 @@ ExUnit.start
 defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
+
+  test "rc/3 conditional commands" do
+    {_, stage} = parse("""
+                       b.b.b.
+                       b.beb.
+                       b.b.b.
+                       """)
+
+    assert {{{1,0}, :north}, stage} == rc({:forward, :blue}, {{1,1}, :north}, stage)
+    assert {{{1,1}, :north}, stage} == rc({:forward, :green}, {{1,1}, :north}, stage)
+    assert {{{1,1}, :north}, stage} == rc({:forward, :red}, {{1,1}, :north}, stage)
+  end
 
   test "rc/3 paint commands" do
     {_, stage} = parse("""

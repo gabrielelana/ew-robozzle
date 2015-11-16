@@ -18,6 +18,15 @@ defmodule Robozzle do
   def rc({:paint, color}, {p, _} = ship, stage),
     do: {ship, Map.put(stage, p, color)}
 
+  def rc({command, color}, {p, _} = ship, stage) do
+    case Map.fetch!(stage, p) do
+      ^color ->
+        rc(command, ship, stage)
+      _ ->
+        {ship, stage}
+    end
+  end
+
   def rc(:forward, {{x,y}, :north}, s), do: pick_star({{x,y-1}, :north}, s)
   def rc(:forward, {{x,y}, :east}, s), do: pick_star({{x+1,y}, :east}, s)
   def rc(:forward, {{x,y}, :south}, s), do: pick_star({{x,y+1}, :south}, s)

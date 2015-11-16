@@ -26,18 +26,27 @@ defmodule Robozzle do
 
   @type outcome :: :complete | :incomplete | :out_of_stage
 
-  @spec run([command], ship, stage) :: {outcome, ship, stage}
-  def run([], ship, stage), do: {:incomplete, ship, stage}
-  def run([c|cs], ship, stage) do
+  @spec run(functions, ship, stage, stack) :: {outcome, ship, stage}
+  def run(fs, ship, stage, stack \\ [{:call, :f1}])
+  def run(_, ship, stage, []),
+    do: {:incomplete, ship, stage}
+  def run(fs, ship, stage, [c|stack]) do
     case rc(c, ship, stage) do
       {:out_of_stage, _, _} = out_of_stage ->
         out_of_stage
+      {ship, stage, f} ->
+        stack = Map.fetch!(fs, f) |> Enum.concat(stack)
+        complete_or_run(fs, ship, stage, stack)
       {ship, stage} ->
-        if complete?(stage) do
-          {:complete, ship, stage}
-        else
-          run(cs, ship, stage)
-        end
+        complete_or_run(fs, ship, stage, stack)
+    end
+  end
+
+  defp complete_or_run(fs, ship, stage, stack) do
+    if complete?(stage) do
+      {:complete, ship, stage}
+    else
+      run(fs, ship, stage, stack)
     end
   end
 
@@ -45,7 +54,12 @@ defmodule Robozzle do
     not Enum.any?(stage, &match?({_, {_, :star}}, &1))
   end
 
-  @spec rc(command, ship, stage) :: {ship, stage} | {:out_of_stage, ship, stage}
+  @spec rc(command, ship, stage) :: {ship, stage}
+                                  | {ship, stage, function_name}
+                                  | {:out_of_stage, ship, stage}
+  def rc({:call, f}, ship, stage),
+    do: {ship, stage, f}
+
   def rc({:paint, color}, {p, _} = ship, stage),
     do: {ship, Map.put(stage, p, color)}
 

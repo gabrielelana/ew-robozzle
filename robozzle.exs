@@ -22,6 +22,9 @@ defmodule Robozzle do
 
   @spec do_parse(String.t, position, ship | nil, stage) :: {ship | nil, stage}
   defp do_parse("", _, ship, stage), do: {ship, stage}
+  defp do_parse(<<"\n", rest::binary>>, {_, y}, ship, stage) do
+    do_parse(rest, {0, y+1}, ship, stage)
+  end
   defp do_parse(<<c::utf8, ".", rest::binary>>, {x, y} = p, ship, stage) do
     do_parse(rest, {x+1, y}, ship, Map.put(stage, p, do_parse(<<c::utf8>>)))
   end
@@ -46,6 +49,22 @@ ExUnit.start
 defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
+
+  test "parse/1 multiple lines" do
+    stage = %{{0,0} => :blue,
+              {1,0} => :blue,
+              {2,0} => :blue,
+              {0,1} => :blue,
+              {1,1} => {:blue, :star},
+              {2,1} => :blue}
+    ship = {{1,0}, :south}
+    assert {ship, stage} == parse(
+      """
+      b.bsb.
+      b.b*b.
+      """
+    )
+  end
 
   test "parse/1 one line with multiple colors" do
     stage = %{{0,0} => :blue,

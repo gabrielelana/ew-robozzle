@@ -4,7 +4,7 @@ defmodule Robozzle do
   @type position :: {x::coordinate, y::coordinate}
   @type direction :: :north | :east | :south | :west
 
-  @type command :: :forward | :right | :left
+  @type command :: :forward | :right | :left | {:paint, color}
 
   @type color :: :blue | :green | :red
   @type tile :: color | {color, :star}
@@ -74,6 +74,17 @@ ExUnit.start
 defmodule Robozzle.Test do
   use ExUnit.Case
   import Robozzle
+
+  test "rc/3 paint commands" do
+    {_, stage} = parse("""
+                       b.b.b.
+                       b.beb.
+                       b.b.b.
+                       """)
+
+    expected = Map.put(stage, {1,1}, :green)
+    assert {{{1,1}, :north}, expected} == rc({:paint, :green}, {{1,1}, :north}, stage)
+  end
 
   test "rc/3 picks the star" do
     {_, stage} = parse("""

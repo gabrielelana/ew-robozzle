@@ -16,7 +16,21 @@ defmodule Robozzle do
 
   @type outcome :: :complete | :incomplete
   @spec run([command], ship, stage) :: {outcome, ship, stage}
-  def run(_commands, ship, stage), do: {:incomplete, ship, stage}
+  def run([], ship, stage), do: {:incomplete, ship, stage}
+  def run([c|cs], ship, stage) do
+    {ship, stage} = rc(c, ship, stage)
+    if complete?(stage) do
+      {:complete, ship, stage}
+    else
+      run(cs, ship, stage)
+    end
+  end
+
+  defp complete?(stage) do
+    stage
+    |> Enum.filter(&match?({_, {_, :star}}, &1))
+    |> Enum.empty?
+  end
 
   @spec rc(command, ship, stage) :: {ship, stage}
   def rc({:paint, color}, {p, _} = ship, stage),

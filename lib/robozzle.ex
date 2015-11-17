@@ -8,7 +8,7 @@ defmodule Robozzle do
 
     children = [
       # Define workers and child supervisors to be supervised
-      # worker(Robozzle.Worker, [arg1, arg2, arg3]),
+      worker(Robozzle.Runner.Server, [[name: :runner]]),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

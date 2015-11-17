@@ -34,37 +34,46 @@ defmodule Robozzle.Runner do
   @stack_limit 100
   @time_limit 10_000
 
+
   @spec run(functions, ship, stage, stack, steps) :: {outcome, ship, stage}
-  def run(fs, ship, stage, stack \\ [{:call, :f1}], steps \\ 0)
-  def run(_, ship, stage, [], _),
+  def run(fs, ship, stage, stack \\ [{:call, :f1}], steps \\ 0) do
+    case step(fs, ship, stage, stack, steps) do
+      {ship, stage, stack, steps} ->
+        run(fs, ship, stage, stack, steps)
+      {_, _, _} = over ->
+        over
+    end
+  end
+
+
+  @spec step(functions, ship, stage, stack, steps) :: {outcome, ship, stage}
+                                                    | {ship, stage, stack, steps}
+  def step(_, ship, stage, [], _),
     do: {:incomplete, ship, stage}
-  def run(_, ship, stage, stack, _) when length(stack) > @stack_limit,
+  def step(_, ship, stage, stack, _) when length(stack) > @stack_limit,
     do: {:stack_overflow, ship, stage}
-  def run(_, ship, stage, _, steps) when steps > @time_limit,
+  def step(_, ship, stage, _, steps) when steps > @time_limit,
     do: {:out_of_time, ship, stage}
-  def run(fs, ship, stage, [c|stack], steps) do
+  def step(fs, ship, stage, [c|stack], steps) do
     case rc(c, ship, stage) do
-      {:out_of_stage, _, _} = out_of_stage ->
-        out_of_stage
+      {:out_of_stage, ship, stage} ->
+        {:out_of_stage, ship, stage}
       {ship, stage, f} ->
         stack = Map.fetch!(fs, f) |> Enum.concat(stack)
-        complete_or_run(fs, ship, stage, stack, steps)
+        complete?(ship, stage, stack, steps)
       {ship, stage} ->
-        complete_or_run(fs, ship, stage, stack, steps)
+        complete?(ship, stage, stack, steps)
     end
   end
 
-  defp complete_or_run(fs, ship, stage, stack, steps) do
-    if complete?(stage) do
-      {:complete, ship, stage}
+  defp complete?(ship, stage, stack, steps) do
+    if Enum.any?(stage, &match?({_, {_, :star}}, &1)) do
+      {ship, stage, stack, steps + 1}
     else
-      run(fs, ship, stage, stack, steps + 1)
+      {:complete, ship, stage}
     end
   end
 
-  defp complete?(stage) do
-    not Enum.any?(stage, &match?({_, {_, :star}}, &1))
-  end
 
   @spec rc(command, ship, stage) :: {ship, stage}
                                   | {ship, stage, function_name}

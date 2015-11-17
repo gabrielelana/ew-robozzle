@@ -1,6 +1,7 @@
-defmodule Robozzle.Test do
-  use ExUnit.Case
-  import Robozzle
+defmodule Robozzle.RunnerTest do
+  use ExUnit.Case, async: true
+  import Robozzle.Runner
+  import Robozzle.Parser
 
   test "run/3 out of time" do
     {ship, stage} = parse("beb.b.b*")
@@ -134,37 +135,5 @@ defmodule Robozzle.Test do
     assert {{{1,1}, :north}, stage} == rc(:left, {{1,1}, :east}, stage)
     assert {{{1,1}, :east}, stage} == rc(:left, {{1,1}, :south}, stage)
     assert {{{1,1}, :south}, stage} == rc(:left, {{1,1}, :west}, stage)
-  end
-
-  test "parse/1 multiple lines" do
-    stage = %{{0,0} => :blue,
-              {1,0} => :blue,
-              {2,0} => :blue,
-              {0,1} => :blue,
-              {1,1} => {:blue, :star},
-              {2,1} => :blue}
-    ship = {{1,0}, :south}
-    assert {ship, stage} == parse(
-      """
-      b.bsb.
-      b.b*b.
-      """
-    )
-  end
-
-  test "parse/1 one line with multiple colors" do
-    stage = %{{0,0} => :blue,
-              {1,0} => :green,
-              {2,0} => {:red, :star}}
-    ship = {{0, 0}, :east}
-    assert {ship, stage} == parse("beg.r*")
-  end
-
-  test "parse/1 one line" do
-    stage = %{{0,0} => :blue,
-              {1,0} => :blue,
-              {2,0} => {:blue, :star}}
-    ship = {{0,0}, :east}
-    assert {ship, stage} == parse("beb.b*")
   end
 end

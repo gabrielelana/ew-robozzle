@@ -1,8 +1,11 @@
-defmodule Robozzle.AcceptanceTest.Macro do
+ExUnit.start()
+
+defmodule Robozzle.Test.Macro do
   defmacro __using__(_opts) do
     quote do
-      import Robozzle.AcceptanceTest.Macro
-      import Robozzle
+      import Robozzle.Test.Macro
+      import Robozzle.Runner
+      import Robozzle.Parser
 
       Module.put_attribute __MODULE__, :acceptance_counter, 0
     end
@@ -34,72 +37,4 @@ defmodule Robozzle.AcceptanceTest.Macro do
   defp scenario_from(block), do: Enum.find(block, &is_binary/1)
   defp function_from(f, block), do: Enum.find(block, &match?({^f, _, _}, &1))
                                     |> (fn({_, _, [cs]}) -> cs; (nil) -> [] end).()
-end
-
-defmodule Robozzle.AcceptanceTest do
-  use ExUnit.Case
-  use Robozzle.AcceptanceTest.Macro
-
-  scenario(:incomplete) do
-    """
-    beb.b*
-    """
-    f1 []
-  end
-
-  scenario(:incomplete) do
-    """
-    beb.b*
-    """
-    f1 [:forward]
-  end
-
-  scenario(:complete) do
-    """
-    beb.b*
-    """
-    f1 [:forward, :forward]
-  end
-
-  scenario(:complete) do
-    """
-    b.b.b.bsb.b.b.
-    b.b.b.b.b.b.b.
-    b.b.b.b.b.b*b.
-    """
-    f1 [:forward, :forward, :left, :forward, :forward]
-  end
-
-  scenario(:out_of_stage) do
-    """
-    bnb*
-    """
-    f1 [:forward]
-  end
-
-  scenario(:stack_overflow) do
-    """
-    bnb*
-    """
-    f1 [:right, {:call, :f1}, :left]
-  end
-
-  scenario(:out_of_time) do
-    """
-    bnb*
-    """
-    f1 [:right, {:call, :f1}]
-  end
-
-  scenario(:complete, "stairs") do
-    """
-    ..........b*b*
-    ........b*b*..
-    ......b*b*....
-    ....b*b*......
-    ..b*b*........
-    beb*..........
-    """
-    f1 [:forward, :left, :forward, :right, {:call, :f1}]
-  end
 end

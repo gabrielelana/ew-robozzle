@@ -41,4 +41,12 @@ defmodule Robozzle.AcceptanceTest do
                     """,
                     f1: [:forward, :left, :forward, :right, {:call, :f1}]
   end
+
+  defp assert_scenario(outcome, scenario, args) do
+    {ship, stage} = parse(scenario)
+    fs = %{f1: Keyword.get(args, :f1, []),
+           f2: Keyword.get(args, :f2, []),
+           f3: Keyword.get(args, :f3, [])}
+    assert {^outcome, _, _} = run(fs, ship, stage)
+  end
 end

@@ -16,4 +16,12 @@ defmodule Robozzle do
     opts = [strategy: :one_for_one, name: Robozzle.Supervisor]
     Supervisor.start_link(children, opts)
   end
+
+  alias Robozzle.Runner
+
+  @spec run(Runner.functions, Runner.ship, Runner.stage) :: outcome
+          when outcome: {Runner.outcome, Runner.ship, Runner.stage}
+  def run(fs, ship, stage) do
+
+  end
 end

@@ -19,8 +19,13 @@ defmodule Robozzle.Server do
     {:ok, []}
   end
 
-  def handle_call({:run, fs, ship, stage}, _from, state) do
-    outcome = :poolboy.transaction(:runners, &Runner.Server.run(&1, fs, ship, stage))
-    {:reply, outcome, state}
+  def handle_call({:run, fs, ship, stage}, from, state) do
+    spawn_link(fn ->
+      :poolboy.transaction(:runners,
+        fn(runner) ->
+          GenServer.reply(from, Runner.Server.run(runner, fs, ship, stage))
+        end)
+    end)
+    {:noreply, state}
   end
 end

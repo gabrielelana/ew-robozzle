@@ -6,9 +6,18 @@ defmodule Robozzle do
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
+    poolboy_name = :runners
+    poolboy_config = [
+      {:name, {:local, poolboy_name}},
+      {:worker_module, Robozzle.Runner.Server},
+      {:size, 4},
+      {:max_overflow, 1}
+    ]
+
     children = [
       # Define workers and child supervisors to be supervised
-      worker(Robozzle.Runner.Server, [[name: :runner]]),
+      worker(Robozzle.Server, [[name: :robozzle]]),
+      :poolboy.child_spec(poolboy_name, poolboy_config, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
@@ -22,6 +31,6 @@ defmodule Robozzle do
   @spec run(Runner.functions, Runner.ship, Runner.stage) :: outcome
           when outcome: {Runner.outcome, Runner.ship, Runner.stage}
   def run(fs, ship, stage) do
-
+    Robozzle.Server.run(:robozzle, fs, ship, stage)
   end
 end

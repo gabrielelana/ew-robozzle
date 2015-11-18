@@ -12,7 +12,6 @@ defmodule RobozzleTest do
     :ok
   end
 
-  @tag :pending
   test "run" do
     {ship, stage} = parse("beb.b.b*")
     functions = %{f1: [:forward, :forward, :forward]}

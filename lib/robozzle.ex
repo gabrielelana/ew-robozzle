@@ -10,8 +10,9 @@ defmodule Robozzle do
     poolboy_config = [
       {:name, {:local, poolboy_name}},
       {:worker_module, Robozzle.Runner.Server},
-      {:size, 4},
-      {:max_overflow, 1}
+      {:size, 12},
+      {:strategy, :fifo},
+      {:max_overflow, 1},
     ]
 
     children = [
@@ -27,10 +28,17 @@ defmodule Robozzle do
   end
 
   alias Robozzle.Runner
+  alias Robozzle.Server
 
   @spec run(Runner.functions, Runner.ship, Runner.stage) :: outcome
-          when outcome: {Runner.outcome, Runner.ship, Runner.stage}
+          when outcome: :busy | {Runner.outcome, Runner.ship, Runner.stage}
   def run(fs, ship, stage) do
-    Robozzle.Server.run(:robozzle, fs, ship, stage)
+    Server.run(:robozzle, fs, ship, stage)
+  end
+
+  @spec solve(Server.solution_constraints, Runner.ship, Runner.stage) :: outcome
+          when outcome: :busy | :timetout | {:solution, Runner.functions}
+  def solve(sc, ship, stage) do
+    Server.solve(:robozzle, sc, ship, stage)
   end
 end

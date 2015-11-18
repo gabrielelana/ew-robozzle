@@ -12,7 +12,7 @@ defmodule Robozzle.Runner do
   @type conditional_command :: {direct_command, color}
   @type command :: direct_command | conditional_command
 
-  @type function_name :: :f1 | :f2 | :f3
+  @type function_name :: :f1 | :f2 | :f3 | :f4 | :f5
   @type functions :: %{function_name => [command]}
 
   @type stack :: [command]

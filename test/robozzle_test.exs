@@ -18,4 +18,26 @@ defmodule RobozzleTest do
 
     assert {:complete, _, _} = Robozzle.run(functions, ship, stage)
   end
+
+  test "solve" do
+    {ship, stage} = parse("beb.b.b*")
+
+    assert {:solution, solution} = Robozzle.solve(%{f1: 3}, ship, stage)
+    assert {:complete, _, _} = Robozzle.Runner.run(solution, ship, stage)
+  end
+
+  test "solve hard" do
+    {ship, stage} = parse("""
+                          ..........b*b*
+                          ........b*b*..
+                          ......b*b*....
+                          ....b*b*......
+                          ..b*b*........
+                          beb*..........
+                          """)
+
+
+    assert {:solution, solution} = Robozzle.solve(%{f1: 5}, ship, stage)
+    assert {:complete, _, _} = Robozzle.Runner.run(solution, ship, stage)
+  end
 end
